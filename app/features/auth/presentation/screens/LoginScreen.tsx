@@ -74,14 +74,14 @@ export default function LoginScreen() {
       {/* Features Section */}
       <View style={styles.featuresContainer}>
         <View style={styles.featureItem}>
-          <MaterialCommunityIcons name="arrow-u-left-top" size={24} color="#FF9AA2" />
+          <MaterialCommunityIcons name="arrow-u-left-top" size={20} color="#FF9AA2" />
           <Text style={styles.featureText}>Always Exchange</Text>
         </View>
         
         <View style={styles.divider} />
         
         <View style={styles.featureItem}>
-          <MaterialCommunityIcons name="tag-outline" size={24} color="#FF9AA2" />
+          <MaterialCommunityIcons name="tag-outline" size={20} color="#FF9AA2" />
           <Text style={styles.featureText}>Shop At Store Prices</Text>
         </View>
         
@@ -178,19 +178,19 @@ const styles = StyleSheet.create({
   featureText: {
     textAlign: 'center',
     marginTop: 12,
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '500',
     color: '#666',
     lineHeight: 18,
   },
   divider: {
     width: 1,
-    height: 40,
+    height: 10,
     backgroundColor: '#e0e0e0',
     marginHorizontal: 8,
   },
   formContainer: {
-    marginTop: 20,
+    marginTop: 10,
     width: '100%',
     maxWidth: 400,
     alignSelf: 'center',

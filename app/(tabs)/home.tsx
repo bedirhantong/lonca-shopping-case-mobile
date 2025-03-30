@@ -93,6 +93,7 @@ export default function HomeScreen() {
             tintColor="#5D3F4F"
           />
         }
+        showSearch={true}
       />
     </View>
   );
