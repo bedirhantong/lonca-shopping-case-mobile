@@ -1,101 +1,91 @@
-import { StyleSheet, View, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
-import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchProfile } from '../store/features/profileSlice';
-import { Text } from '../components/Themed';
-import { AuthUseCase } from '../features/auth/domain/usecases/auth.usecase';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { router } from 'expo-router';
+import { ProfileUseCase } from '../features/profile/domain/usecases/profile.usecase';
+import { Profile } from '../features/profile/domain/models/profile.model';
+import ProfileHeader from '../features/profile/presentation/components/ProfileHeader';
+import SettingsSection from '../features/profile/presentation/components/SettingsSection';
 
 export default function ProfileScreen() {
-  const dispatch = useAppDispatch();
-  const { data: profile, isLoading, error } = useAppSelector((state) => state.profile);
-  const authUseCase = new AuthUseCase();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const profileUseCase = new ProfileUseCase();
 
-  useEffect(() => {
-    dispatch(fetchProfile());
-  }, [dispatch]);
-
-  const handleLogout = async () => {
+  const loadProfile = async () => {
     try {
-      await authUseCase.logout();
-      router.replace('/login');
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to logout');
+      const response = await profileUseCase.getProfile();
+      if (response.success) {
+        setProfile(response.data);
+      } else {
+        Alert.alert('Error', response?.message || 'Failed to load profile');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load profile');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleEditProfile = () => {
+    // Navigate to edit profile screen
+    console.log('Navigate to edit profile');
+  };
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            await profileUseCase.logout();
+            router.replace('/login');
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
   if (isLoading) {
     return (
-      <View style={styles.container}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#5D3F4F" />
       </View>
     );
   }
 
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
-
   if (!profile) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>No profile data available</Text>
-      </View>
-    );
+    return null;
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.profileInfo}>
-        <Text style={styles.name}>{profile.name}</Text>
-        <Text style={styles.email}>{profile.email}</Text>
-      </View>
-
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
-    </View>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ProfileHeader profile={profile} onEditPress={handleEditProfile} />
+      <SettingsSection onLogout={handleLogout} />
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
-    padding: 16,
-  },
-  profileInfo: {
     alignItems: 'center',
-    marginBottom: 32,
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  email: {
-    fontSize: 16,
-    color: '#666',
-  },
-  logoutButton: {
-    backgroundColor: '#5D3F4F',
-    paddingHorizontal: 32,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  logoutText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-    textAlign: 'center',
+    backgroundColor: '#f5f5f5',
   },
 }); 

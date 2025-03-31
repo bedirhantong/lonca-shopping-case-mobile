@@ -9,6 +9,7 @@ export interface Product {
   price: number;
   images: string[];
   product_code: string;
+  created_at: string;
 }
 
 export interface ProductsResponse {

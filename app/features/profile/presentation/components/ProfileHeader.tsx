@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Profile } from '../../domain/models/profile.model';
-import { FontAwesome } from '@expo/vector-icons';
 
 interface ProfileHeaderProps {
   profile: Profile;
@@ -13,32 +13,16 @@ export default function ProfileHeader({ profile, onEditPress }: ProfileHeaderPro
     <View style={styles.container}>
       <View style={styles.avatarContainer}>
         <Image
-          source={
-            profile.avatar_url
-              ? { uri: profile.avatar_url }
-              : require('../../../../../assets/images/favicon.png')
-          }
+          source={{ uri: profile.avatar_url || 'https://via.placeholder.com/150' }}
           style={styles.avatar}
         />
         <TouchableOpacity style={styles.editButton} onPress={onEditPress}>
-          <FontAwesome name="pencil" size={16} color="#666" />
+          <MaterialCommunityIcons name="pencil" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
-      
       <Text style={styles.name}>{profile.full_name}</Text>
       <Text style={styles.username}>@{profile.username}</Text>
-      
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{profile.favorites_count || 0}</Text>
-          <Text style={styles.statLabel}>Favorites</Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{profile.reviews_count || 0}</Text>
-          <Text style={styles.statLabel}>Reviews</Text>
-        </View>
-      </View>
+      <Text style={styles.email}>{profile.email}</Text>
     </View>
   );
 }
@@ -46,29 +30,32 @@ export default function ProfileHeader({ profile, onEditPress }: ProfileHeaderPro
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    paddingVertical: 20,
+    padding: 20,
     backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
   avatarContainer: {
     position: 'relative',
     marginBottom: 16,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#f0f0f0',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: '#5D3F4F',
   },
   editButton: {
     position: 'absolute',
     right: 0,
     bottom: 0,
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    width: 30,
-    height: 30,
-    alignItems: 'center',
+    backgroundColor: '#5D3F4F',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -80,38 +67,17 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#333',
     marginBottom: 4,
   },
   username: {
     fontSize: 16,
     color: '#666',
-    marginBottom: 16,
+    marginBottom: 4,
   },
-  statsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  statItem: {
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  statNumber: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#333',
-  },
-  statLabel: {
+  email: {
     fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  divider: {
-    width: 1,
-    height: 40,
-    backgroundColor: '#e0e0e0',
+    color: '#999',
   },
 }); 

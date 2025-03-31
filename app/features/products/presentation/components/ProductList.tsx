@@ -40,25 +40,8 @@ const ProductList = ({
   refreshControl,
   showSearch = false,
 }: ProductListProps) => {
-  const dispatch = useAppDispatch();
-  const { query, results, isLoading: isSearching } = useAppSelector((state) => state.search);
-  const [searchText, setSearchText] = useState('');
 
-  const debouncedSearch = debounce((text: string) => {
-    dispatch(searchProducts(text));
-  }, 500);
-
-  const handleSearch = (text: string) => {
-    setSearchText(text);
-    debouncedSearch(text);
-  };
-
-  const handleClearSearch = () => {
-    setSearchText('');
-    dispatch(clearSearch());
-  };
-
-  const displayedProducts = searchText ? results : products;
+  const displayedProducts = products;
 
   // Log products data
   console.log('\n📦 ProductList Render:', {
@@ -91,45 +74,11 @@ const ProductList = ({
     </TouchableOpacity>
   );
 
-  const renderSearchBar = () => (
-    <View style={styles.searchContainer}>
-      <View style={styles.searchInputContainer}>
-        <FontAwesome5 name="search" size={16} color="#666" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search products..."
-          value={searchText}
-          onChangeText={handleSearch}
-          returnKeyType="search"
-        />
-        {searchText ? (
-          <TouchableOpacity onPress={handleClearSearch} style={styles.clearButton}>
-            <FontAwesome5 name="times" size={16} color="#666" />
-          </TouchableOpacity>
-        ) : null}
-      </View>
-    </View>
-  );
 
-  const renderEmptyState = () => {
-    if (isLoading || isSearching) return null;
-    if (searchText && results.length === 0) {
-      return (
-        <View style={styles.emptyContainer}>
-          <FontAwesome5 name="search" size={50} color="#ccc" />
-          <Text style={styles.emptyText}>No products found</Text>
-          <TouchableOpacity onPress={handleClearSearch} style={styles.resetButton}>
-            <Text style={styles.resetButtonText}>Clear Search</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-    return null;
-  };
 
   return (
     <View style={styles.container}>
-      {showSearch && renderSearchBar()}
+      {showSearch}
       <FlatList
         data={displayedProducts}
         renderItem={renderItem}
@@ -140,11 +89,10 @@ const ProductList = ({
           styles.list,
           displayedProducts.length === 0 && styles.emptyList
         ]}
-        onEndReached={!searchText ? onEndReached : undefined}
+        onEndReached={onEndReached}
         onEndReachedThreshold={0.5}
-        ListEmptyComponent={renderEmptyState}
         ListFooterComponent={() => (
-          (isLoading || isSearching) ? (
+          (isLoading) ? (
             <ActivityIndicator size="large" color="#5D3F4F" style={styles.loader} />
           ) : null
         )}
@@ -153,7 +101,7 @@ const ProductList = ({
         windowSize={5}
         removeClippedSubviews={true}
         initialNumToRender={6}
-        refreshControl={!searchText ? refreshControl : undefined}
+        refreshControl={refreshControl }
       />
     </View>
   );
@@ -163,34 +111,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  searchContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8f8f8',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    fontSize: 16,
-    color: '#333',
-  },
-  clearButton: {
-    padding: 8,
-  },
   list: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop : 16,
+    paddingBottom : 60
   },
   emptyList: {
     flexGrow: 1,
@@ -214,9 +138,9 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: CARD_WIDTH * 1.3,
+    height: CARD_WIDTH * 1.2,
     borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    borderTopRightRadius: 12
   },
   cardContent: {
     padding: 12,
@@ -229,7 +153,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 14,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 3,
     height: 40,
   },
   footer: {

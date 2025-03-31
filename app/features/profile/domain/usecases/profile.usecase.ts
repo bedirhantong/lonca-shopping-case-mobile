@@ -1,29 +1,26 @@
+import { Profile, ProfileUpdateInput } from '../models/profile.model';
 import { BaseResponse } from '../../../../core/types/api-response';
-import { ProfileRepository } from '../../data/repositories/profile.repository';
-import { Profile, ProfileUpdateRequest } from '../models/profile.model';
+import apiClient from '../../../../core/network/api-client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export class ProfileUseCase {
-  private repository: ProfileRepository;
-
-  constructor() {
-    this.repository = new ProfileRepository();
-  }
-
   async getProfile(): Promise<BaseResponse<Profile>> {
     try {
-      return await this.repository.getProfile();
+      return await apiClient.get('/users/me');
     } catch (error) {
       throw error;
     }
   }
 
-  async updateProfile(userId: string, data: ProfileUpdateRequest): Promise<BaseResponse<Profile>> {
+  async updateProfile(data: ProfileUpdateInput): Promise<BaseResponse<Profile>> {
     try {
-      return await this.repository.updateProfile(userId, data);
+      return await apiClient.put('/users/me', data);
     } catch (error) {
       throw error;
     }
   }
-}
 
-export default ProfileUseCase; 
+  async logout(): Promise<void> {
+    await AsyncStorage.removeItem('token');
+  }
+} 

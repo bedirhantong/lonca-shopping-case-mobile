@@ -2,10 +2,12 @@ import { User } from '../../../auth/domain/models/user.model';
 
 export interface Profile {
   id: string;
-  name: string;
   email: string;
-  createdAt: string;
-  updatedAt: string;
+  username: string;
+  full_name: string;
+  avatar_url: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface UpdateProfileRequest {
@@ -13,7 +15,7 @@ export interface UpdateProfileRequest {
   email?: string;
 }
 
-export interface ProfileUpdateRequest {
+export interface ProfileUpdateInput {
   full_name?: string;
   avatar_url?: string;
 }

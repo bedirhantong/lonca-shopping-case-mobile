@@ -1,6 +1,7 @@
 import { BaseResponse } from '../../../../core/types/api-response';
 import { ProductRepository } from '../../data/repositories/product.repository';
 import { Product, ProductFilters, ProductsResponse } from '../models/product.model';
+import { SearchFilters } from '../../../search/domain/models/search.model';
 
 export class ProductUseCase {
   private repository: ProductRepository;
@@ -25,9 +26,9 @@ export class ProductUseCase {
     }
   }
 
-  async searchProducts(query: string): Promise<BaseResponse<Product[]>> {
+  async searchProducts(query: string, filters: SearchFilters = {}): Promise<BaseResponse<Product[]>> {
     try {
-      return await this.repository.searchProducts(query);
+      return await this.repository.searchProducts(query, filters);
     } catch (error) {
       throw error;
     }

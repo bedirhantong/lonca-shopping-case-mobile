@@ -1,7 +1,8 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { MaterialCommunityIcons, Feather, FontAwesome5 } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { Image, View, StyleSheet, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
 
 const logoImage = require('../../assets/images/logo.png');
 
@@ -18,7 +19,6 @@ function HeaderLogo() {
 }
 
 export default function TabLayout() {
-
   return (
     <Tabs
       screenOptions={{
@@ -32,7 +32,7 @@ export default function TabLayout() {
           elevation: 0,
           borderRadius: 25,
           height: 65,
-          paddingBottom: 10,
+          paddingBottom: 0,
           paddingTop: 10,
           backgroundColor: Platform.OS === 'ios' ? 'rgba(255, 255, 255, 0.9)' : 'white',
           borderTopWidth: 0,
@@ -69,6 +69,22 @@ export default function TabLayout() {
             <View style={[styles.tabIconContainer, focused && styles.tabIconContainerActive]}>
               <MaterialCommunityIcons 
                 name={focused ? "home" : "home-outline"} 
+                size={24} 
+                color={color} 
+              />
+            </View>
+          ),
+        }}
+      />
+      
+      <Tabs.Screen
+        name="search"
+        options={{
+          title: 'Search',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIconContainer, focused && styles.tabIconContainerActive]}>
+              <MaterialCommunityIcons 
+                name={focused ? "magnify" : "magnify"} 
                 size={24} 
                 color={color} 
               />

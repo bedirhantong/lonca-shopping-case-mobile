@@ -1,16 +1,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { ProductUseCase } from '../../features/products/domain/usecases/product.usecase';
 import { Product } from '../../features/products/domain/models/product.model';
-
-interface SearchState {
-  query: string;
-  results: Product[];
-  isLoading: boolean;
-  error: string | null;
-}
+import { SearchFilters, SearchState } from '../../features/search/domain/models/search.model';
 
 const initialState: SearchState = {
   query: '',
+  filters: {
+    sort_field: 'name',
+    sort_order: 'asc'
+  },
   results: [],
   isLoading: false,
   error: null,
@@ -18,13 +16,13 @@ const initialState: SearchState = {
 
 const productUseCase = new ProductUseCase();
 
-export const searchProducts = createAsyncThunk<Product[], string>(
+export const searchProducts = createAsyncThunk<Product[], { query: string; filters: SearchFilters }>(
   'search/searchProducts',
-  async (query) => {
+  async ({ query, filters }) => {
     if (!query.trim()) {
       return [];
     }
-    const response = await productUseCase.searchProducts(query);
+    const response = await productUseCase.searchProducts(query, filters);
     if (!response.success) {
       throw new Error(response.message || 'Failed to search products');
     }
@@ -39,11 +37,17 @@ const searchSlice = createSlice({
     setQuery: (state, action) => {
       state.query = action.payload;
     },
+    setFilters: (state, action) => {
+      state.filters = { ...state.filters, ...action.payload };
+    },
     clearSearch: (state) => {
       state.query = '';
       state.results = [];
       state.error = null;
     },
+    clearFilters: (state) => {
+      state.filters = initialState.filters;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -62,5 +66,5 @@ const searchSlice = createSlice({
   },
 });
 
-export const { setQuery, clearSearch } = searchSlice.actions;
+export const { setQuery, setFilters, clearSearch, clearFilters } = searchSlice.actions;
 export default searchSlice.reducer; 
