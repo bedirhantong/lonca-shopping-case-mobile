@@ -14,6 +14,7 @@ import {
   Platform,
   Dimensions,
   Animated,
+  StatusBar,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
@@ -23,9 +24,11 @@ import { Review } from '../../../../features/reviews/domain/models/review.model'
 import { ReviewUseCase } from '../../../../features/reviews/domain/usecases/review.usecase';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { toggleFavorite } from '../../../../store/features/favoriteSlice';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 const IMAGE_HEIGHT = height * 0.45;
+const HEADER_HEIGHT = Platform.OS === 'ios' ? 44 : StatusBar.currentHeight || 0;
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -38,6 +41,7 @@ export default function ProductDetailScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const scrollY = new Animated.Value(0);
+  const [scrollPosition, setScrollPosition] = useState(0);
 
   const dispatch = useAppDispatch();
   const { items: favorites, pendingToggles } = useAppSelector((state) => state.favorites);
@@ -49,6 +53,18 @@ export default function ProductDetailScreen() {
 
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, IMAGE_HEIGHT - 100],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
+  const headerBackground = scrollY.interpolate({
+    inputRange: [0, IMAGE_HEIGHT - 100],
+    outputRange: ['rgba(0,0,0,0)', '#fff'],
+    extrapolate: 'clamp',
+  });
+
+  const headerTitleOpacity = scrollY.interpolate({
+    inputRange: [IMAGE_HEIGHT - 100, IMAGE_HEIGHT - 50],
     outputRange: [0, 1],
     extrapolate: 'clamp',
   });
@@ -131,6 +147,16 @@ export default function ProductDetailScreen() {
       ));
   };
 
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    { 
+      useNativeDriver: true,
+      listener: (event: any) => {
+        setScrollPosition(event.nativeEvent.contentOffset.y);
+      }
+    }
+  );
+
   if (isLoading || !product) {
     return (
       <View style={styles.loadingContainer}>
@@ -143,38 +169,81 @@ export default function ProductDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Animated Header */}
-      <Animated.View style={[styles.animatedHeader, { opacity: headerOpacity }]}>
-        <Text numberOfLines={1} style={styles.headerTitle}>{product.name}</Text>
+      <StatusBar
+        translucent
+        backgroundColor="transparent"
+        barStyle={scrollPosition > IMAGE_HEIGHT - 100 ? "dark-content" : "light-content"}
+      />
+
+      {/* Header Background */}
+      <Animated.View 
+        style={[
+          styles.headerBackground,
+          { 
+            backgroundColor: headerBackground,
+            borderBottomColor: scrollPosition > IMAGE_HEIGHT - 100 ? '#f0f0f0' : 'transparent',
+            borderBottomWidth: 1,
+          }
+        ]} 
+      />
+
+      {/* Header Gradient Overlay */}
+      <LinearGradient
+        colors={['rgba(0,0,0,0.4)', 'transparent']}
+        style={[styles.headerGradient]}
+        pointerEvents="none"
+      />
+
+      {/* Animated Header Title */}
+      <Animated.View 
+        style={[
+          styles.animatedHeader, 
+          { opacity: headerTitleOpacity }
+        ]}
+      >
+        <Text numberOfLines={1} style={styles.headerTitle}>
+          {product?.name}
+        </Text>
       </Animated.View>
 
       {/* Back and Favorite Buttons */}
       <View style={styles.headerButtons}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
-          <FontAwesome name="arrow-left" size={24} color="#fff" />
+        <TouchableOpacity 
+          onPress={() => router.back()} 
+          style={[
+            styles.headerButton,
+            { backgroundColor: scrollPosition > IMAGE_HEIGHT - 100 ? '#f0f0f0' : 'rgba(0,0,0,0.3)' }
+          ]}
+        >
+          <FontAwesome 
+            name="arrow-left" 
+            size={24} 
+            color={scrollPosition > IMAGE_HEIGHT - 100 ? "#333" : "#fff"} 
+          />
         </TouchableOpacity>
         <TouchableOpacity 
           onPress={handleToggleFavorite} 
-          style={[styles.headerButton, isTogglePending && styles.headerButtonDisabled]}
+          style={[
+            styles.headerButton, 
+            { backgroundColor: scrollPosition > IMAGE_HEIGHT - 100 ? '#f0f0f0' : 'rgba(0,0,0,0.3)' },
+            isTogglePending && styles.headerButtonDisabled
+          ]}
           disabled={isTogglePending}
         >
           {isTogglePending ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator size="small" color={scrollPosition > IMAGE_HEIGHT - 100 ? "#333" : "#fff"} />
           ) : (
             <FontAwesome 
               name={isFavorite ? "heart" : "heart-o"} 
               size={24} 
-              color="#fff"
+              color={isFavorite ? "#ff4444" : (scrollPosition > IMAGE_HEIGHT - 100 ? "#333" : "#fff")}
             />
           )}
         </TouchableOpacity>
       </View>
 
       <Animated.ScrollView
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
-        )}
+        onScroll={handleScroll}
         scrollEventThrottle={16}
       >
         {/* Image Gallery */}
@@ -365,30 +434,42 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  animatedHeader: {
+  headerBackground: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 44 : 0,
+    top: 0,
     left: 0,
     right: 0,
-    height: 60,
-    backgroundColor: '#fff',
+    height: HEADER_HEIGHT + 44,
     zIndex: 100,
-    flexDirection: 'row',
+  },
+  headerGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: HEADER_HEIGHT + 60,
+    zIndex: 99,
+  },
+  animatedHeader: {
+    position: 'absolute',
+    top: HEADER_HEIGHT,
+    left: 0,
+    right: 0,
+    height: 44,
     alignItems: 'center',
-    paddingHorizontal: 60,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    justifyContent: 'center',
+    zIndex: 100,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
     color: '#333',
     textAlign: 'center',
-    flex: 1,
+    paddingHorizontal: 60,
   },
   headerButtons: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 44 : 0,
+    top: HEADER_HEIGHT,
     left: 0,
     right: 0,
     flexDirection: 'row',
@@ -401,7 +482,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
     alignItems: 'center',
   },
